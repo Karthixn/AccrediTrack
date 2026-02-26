@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AccrediTrack</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/AccrediTrackLogo.png">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts for Modern Typography -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500&display=swap"
+        rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <!-- Login Page -->
+    <div id="login-page" class="page active">
+        <div class="login-wrapper">
+            <div class="login-brand">
+                <img src="assets/AccrediTrackLogo.png" alt="AccrediTrack Logo" class="brand-icon-large">
+                <h2>AccrediTrack</h2>
+                <p>Welcome back. Please enter your details.</p>
+            </div>
+            <div class="login-container">
+                <form id="login-form">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <div class="input-icon-wrapper">
+                            <i data-lucide="mail"></i>
+                            <input type="email" id="login-email" required placeholder="admin@college.edu">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-icon-wrapper">
+                            <i data-lucide="lock"></i>
+                            <input type="password" id="login-password" required placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <div class="input-icon-wrapper select-wrapper">
+                            <i data-lucide="users"></i>
+                            <select id="login-role" required>
+                                <option value="Admin">Admin</option>
+                                <option value="Faculty">Faculty</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-chevron"></i>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-4">
+                        <span>Sign In</span>
+                        <i data-lucide="arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Layout (Sidebar + Content) -->
+    <div id="main-layout" class="page dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="nav-brand">
+                    <div class="brand-logo"><img src="assets/AccrediTrackLogo.png" alt="Logo"></div>
+                    <span>AccrediTrack</span>
+                </div>
+                <button class="menu-toggle" id="menu-close"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-avatar">
+                    <span id="user-initial">A</span>
+                </div>
+                <div class="user-info-text">
+                    <p class="user-name" id="user-name">Admin User</p>
+                    <p class="user-role" id="user-role">Administrator</p>
+                </div>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-target="dashboard-page">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-target="upload-page">
+                        <i data-lucide="upload-cloud"></i>
+                        <span>Upload Evidence</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-target="documents-page">
+                        <i data-lucide="folder-open"></i>
+                        <span>Documents</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="nav-link text-danger">
+                    <i data-lucide="log-out"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Mobile Header -->
+            <header class="mobile-header">
+                <button class="menu-toggle" id="menu-open"><i data-lucide="menu"></i></button>
+                <div class="nav-brand">
+                    <img src="assets/AccrediTrack.png" alt="Logo"
+                        style="width: 24px; height: 24px; border-radius: 6px;">
+                    <span>AccrediTrack</span>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Dashboard Page -->
+                <div id="dashboard-page" class="view active">
+                    <header class="view-header">
+                        <div>
+                            <h1>NAAC Readiness</h1>
+                            <p>Track your accreditation progress across all 7 criteria</p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn btn-outline"
+                                onclick="document.querySelector('[data-target=\'upload-page\']').click()">
+                                <i data-lucide="plus"></i> New Upload
+                            </button>
+                        </div>
+                    </header>
+
+                    <!-- Overview Metrics -->
+                    <div class="metrics-grid" id="overview-metrics">
+                        <!-- Injected by JS -->
+                    </div>
+
+                    <h2 class="section-title">Criteria Breakdown</h2>
+                    <div class="dashboard-grid" id="criteria-cards">
+                        <!-- Cards injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Upload Page -->
+                <div id="upload-page" class="view">
+                    <header class="view-header">
+                        <div>
+                            <h1>Upload Evidence</h1>
+                            <p>Submit documents for NAAC accreditation</p>
+                        </div>
+                    </header>
+                    <div class="form-container">
+                        <div class="form-card elevate">
+                            <form id="upload-form">
+                                <div class="form-row">
+                                    <div class="form-group half-width">
+                                        <label>Framework</label>
+                                        <div class="input-icon-wrapper">
+                                            <i data-lucide="bookmark"></i>
+                                            <input type="text" value="NAAC" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="form-group half-width">
+                                        <label>Academic Year</label>
+                                        <div class="input-icon-wrapper select-wrapper">
+                                            <i data-lucide="calendar"></i>
+                                            <select id="upload-year" required>
+                                                <option value="2025-2026">2025-2026</option>
+                                                <option value="2024-2025">2024-2025</option>
+                                                <option value="2023-2024">2023-2024</option>
+                                            </select>
+                                            <i data-lucide="chevron-down" class="select-chevron"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Criterion</label>
+                                    <div class="input-icon-wrapper select-wrapper">
+                                        <i data-lucide="layers"></i>
+                                        <select id="upload-criterion" required>
+                                            <option value="">Select Criterion</option>
+                                            <option value="C1">C1: Curricular Aspects</option>
+                                            <option value="C2">C2: Teaching-Learning and Evaluation</option>
+                                            <option value="C3">C3: Research, Innovations and Extension</option>
+                                            <option value="C4">C4: Infrastructure and Learning Resources</option>
+                                            <option value="C5">C5: Student Support and Progression</option>
+                                            <option value="C6">C6: Governance, Leadership and Management</option>
+                                            <option value="C7">C7: Institutional Values and Best Practices</option>
+                                        </select>
+                                        <i data-lucide="chevron-down" class="select-chevron"></i>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Checklist Item</label>
+                                    <div class="input-icon-wrapper select-wrapper">
+                                        <i data-lucide="check-square"></i>
+                                        <select id="upload-checklist" required>
+                                            <option value="">Select Criterion First</option>
+                                            <!-- Injected based on criterion -->
+                                        </select>
+                                        <i data-lucide="chevron-down" class="select-chevron"></i>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Document Title</label>
+                                    <div class="input-icon-wrapper">
+                                        <i data-lucide="type"></i>
+                                        <input type="text" id="upload-title" required
+                                            placeholder="e.g. C1 Syllabus PDF">
+                                    </div>
+                                </div>
+                                <div class="form-group file-upload-group">
+                                    <label>Evidence File (Optional)</label>
+                                    <div class="file-drop-area">
+                                        <i data-lucide="upload-cloud" class="upload-icon"></i>
+                                        <span class="file-msg">Drag & drop or click to browse</span>
+                                        <input type="file" id="upload-file" class="file-input">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 mt-2 btn-large">
+                                    <i data-lucide="upload"></i> Upload Document
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Page -->
+                <div id="documents-page" class="view">
+                    <header class="view-header flex-between mb-2">
+                        <div>
+                            <h1>Evidence Repository</h1>
+                            <p>Manage all your uploaded evidence files</p>
+                        </div>
+                        <div class="search-box">
+                            <i data-lucide="search" class="search-icon"></i>
+                            <input type="text" id="search-docs" placeholder="Search documents...">
+                        </div>
+                    </header>
+                    <div class="table-container elevate">
+                        <table class="docs-table">
+                            <thead>
+                                <tr>
+                                    <th>Document Details</th>
+                                    <th>Criterion</th>
+                                    <th>Checklist Item</th>
+                                    <th>Year</th>
+                                    <th>Uploader</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="docs-tbody">
+                                <!-- Rows injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
