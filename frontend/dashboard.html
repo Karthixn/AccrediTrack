@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – AccrediTrack</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<script src="js/api.js"></script>
+<script src="js/layout.js"></script>
+<script>
+renderLayout('Dashboard', 'dashboard');
+
+async function init() {
+  const stats = await apiFetch('/stats');
+  const pc = document.getElementById('page-content');
+  pc.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <div><div class="stat-value">${stats.totalFaculty}</div><div class="stat-label">Total Faculty</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+        <div><div class="stat-value">${stats.totalStudents}</div><div class="stat-label">Student Achievements</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div><div class="stat-value">${stats.totalDocuments}</div><div class="stat-label">Documents</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg></div>
+        <div><div class="stat-value">${stats.totalReports}</div><div class="stat-label">Reports</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon pink"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div><div class="stat-value">${stats.totalUsers}</div><div class="stat-label">System Users</div></div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Faculty by Department</div>
+        <canvas id="deptChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Student Achievements by Type</div>
+        <canvas id="achieveChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Users by Role</div>
+        <canvas id="roleChart" height="200"></canvas>
+      </div>
+      <div class="chart-card" style="display:flex;flex-direction:column;justify-content:center">
+        <div class="chart-title">Quick Actions</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <a href="faculty.html" class="btn btn-secondary"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Manage Faculty</a>
+          <a href="students.html" class="btn btn-secondary"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/></svg> Student Achievements</a>
+          <a href="documents.html" class="btn btn-secondary"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload Document</a>
+          <a href="reports.html" class="btn btn-primary"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> Generate Report</a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const colors = ['#1a56db','#10b981','#f59e0b','#ef4444','#6366f1','#ec4899','#14b8a6'];
+
+  new Chart(document.getElementById('deptChart'), {
+    type: 'bar',
+    data: { labels: stats.byDept.map(d => d.department || 'Unknown'), datasets: [{ label: 'Faculty', data: stats.byDept.map(d => d.count), backgroundColor: colors }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+  });
+
+  new Chart(document.getElementById('achieveChart'), {
+    type: 'pie',
+    data: { labels: stats.byAchievement.map(a => a.achievement_type || 'Other'), datasets: [{ data: stats.byAchievement.map(a => a.count), backgroundColor: colors }] },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+
+  new Chart(document.getElementById('roleChart'), {
+    type: 'doughnut',
+    data: { labels: stats.byRole.map(r => r.role), datasets: [{ data: stats.byRole.map(r => r.count), backgroundColor: colors }] },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+}
+
+init();
+</script>
+</body>
+</html>

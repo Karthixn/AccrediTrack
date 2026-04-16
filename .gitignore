@@ -1,0 +1,25 @@
+# Dependencies
+backend/node_modules/
+
+# Database
+backend/accreditrack.db
+
+# Uploaded files
+backend/uploads/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
