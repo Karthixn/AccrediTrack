@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports – AccrediTrack</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<script src="js/api.js"></script>
+<script src="js/layout.js"></script>
+<script>
+renderLayout('Reports', 'reports');
+const user = getUser();
+const canGenerate = ['Admin','HOD'].includes(user.role);
+const canDelete = user.role === 'Admin';
+
+async function load() {
+  const data = await apiFetch('/reports');
+  const tbody = document.getElementById('r-tbody');
+  if (!data.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg><p>No reports yet</p></div></td></tr>`; return; }
+  tbody.innerHTML = data.map(r => `
+    <tr>
+      <td><strong>${r.title}</strong></td>
+      <td>${r.type || '—'}</td>
+      <td>${r.author || '—'}</td>
+      <td><span class="badge badge-${(r.status||'').toLowerCase()}">${r.status}</span></td>
+      <td>${formatDate(r.created_at)}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-sm btn-secondary" onclick="viewPdf(${r.id}, '${r.title.replace(/'/g,"\\'")}', this)" title="Preview">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> View
+        </button>
+        <button class="btn btn-sm btn-primary" onclick="downloadPdf(${r.id}, '${r.title.replace(/'/g,"\\'")}', this)" title="Download PDF">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> PDF
+        </button>
+        ${canDelete ? `<button class="btn btn-sm btn-danger btn-icon" onclick="deleteReport(${r.id})" title="Delete"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+
+async function fetchPdfBlob(id) {
+  const res = await fetch(`/api/reports/${id}/pdf`, { headers: { Authorization: `Bearer ${getToken()}` } });
+  if (!res.ok) throw new Error('Failed to load PDF');
+  return res.blob();
+}
+
+async function viewPdf(id, title, btn) {
+  btn.disabled = true;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<div class="spinner" style="border-color:rgba(0,0,0,.15);border-top-color:#374151;width:12px;height:12px"></div>';
+  try {
+    const blob = await fetchPdfBlob(id);
+    const url = URL.createObjectURL(blob);
+    document.getElementById('pdf-frame').src = url;
+    document.getElementById('pdf-preview-title').textContent = title;
+    document.getElementById('pdf-download-link').href = url;
+    document.getElementById('pdf-download-link').download = `${title || 'report'}.pdf`;
+    openModal('pdf-preview-modal');
+  } catch(e) { showToast(e.message, 'error'); }
+  finally { btn.disabled = false; btn.innerHTML = orig; }
+}
+
+async function downloadPdf(id, title, btn) {
+  btn.disabled = true;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<div class="spinner" style="border-color:rgba(255,255,255,.3);border-top-color:white;width:12px;height:12px"></div>';
+  try {
+    const blob = await fetchPdfBlob(id);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `${title || 'report'}.pdf`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    showToast('PDF downloaded');
+  } catch(e) { showToast(e.message, 'error'); }
+  finally { btn.disabled = false; btn.innerHTML = orig; }
+}
+
+async function deleteReport(id) {
+  if (!confirm('Delete this report?')) return;
+  try { await apiFetch('/reports/' + id, { method: 'DELETE' }); showToast('Report deleted'); load(); } catch(e) { showToast(e.message,'error'); }
+}
+
+async function generateReport(e) {
+  e.preventDefault();
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+  try {
+    const res = await apiFetch('/reports/generate', { method: 'POST', body: JSON.stringify({ title: document.getElementById('r-title').value, type: document.getElementById('r-type').value }) });
+    showToast('Report generated'); closeModal('report-modal'); load();
+  } catch(e) { showToast(e.message,'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Generate'; }
+}
+
+document.getElementById('page-content').innerHTML = `
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Accreditation Reports</span>
+      <div style="display:flex;gap:8px">
+        ${canGenerate ? `<button class="btn btn-primary" onclick="openModal('report-modal')">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Generate Report
+        </button>` : ''}
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table><thead><tr><th>Title</th><th>Type</th><th>Generated By</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody id="r-tbody"><tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="pdf-preview-modal">
+    <div class="modal" style="max-width:860px;width:95vw;height:90vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span class="modal-title" id="pdf-preview-title">Report Preview</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <a id="pdf-download-link" class="btn btn-sm btn-primary" download>
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download
+          </a>
+          <button class="btn btn-sm btn-secondary btn-icon" onclick="closeModal('pdf-preview-modal')">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <iframe id="pdf-frame" style="flex:1;border:none;border-radius:0 0 14px 14px" src=""></iframe>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="report-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Generate Report</span>
+        <button class="btn btn-sm btn-secondary btn-icon" onclick="closeModal('report-modal')"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <form onsubmit="generateReport(event)">
+        <div class="modal-body">
+          <div class="form-group"><label class="form-label">Report Title</label><input class="form-control" id="r-title" placeholder="e.g. Annual Accreditation Report 2024" /></div>
+          <div class="form-group"><label class="form-label">Report Type</label>
+            <select class="form-control" id="r-type">
+              <option>General</option><option>Faculty</option><option>Student</option><option>Research</option><option>Annual</option><option>Audit</option>
+            </select>
+          </div>
+          <div class="alert alert-success" style="margin-top:8px">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Report will include all faculty, student achievements, and documents. Download as PDF after generation.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('report-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="gen-btn">Generate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+`;
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Users – AccrediTrack</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<script src="js/api.js"></script>
+<script src="js/layout.js"></script>
+<script>
+renderLayout('Manage Users', 'users');
+const user = getUser();
+if (user.role !== 'Admin') { document.getElementById('page-content').innerHTML = `<div class="alert alert-error">Access denied. Admin only.</div>`; }
+
+async function load() {
+  const data = await apiFetch('/users');
+  const tbody = document.getElementById('u-tbody');
+  tbody.innerHTML = data.map(u => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="user-avatar" style="width:32px;height:32px;font-size:12px">${u.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</div>
+          <div><div style="font-weight:600">${u.name}</div><div style="font-size:12px;color:var(--text-muted)">${u.email}</div></div>
+        </div>
+      </td>
+      <td>${u.department || '—'}</td>
+      <td>${roleBadge(u.role)}</td>
+      <td>${formatDate(u.created_at)}</td>
+      <td style="display:flex;gap:4px;align-items:center">
+        <select class="filter-select" style="font-size:12px;padding:4px 8px" onchange="changeRole(${u.id}, this.value)" ${u.id === user.id ? 'disabled' : ''}>
+          ${['Admin','Faculty','HOD','Auditor'].map(r => `<option ${u.role===r?'selected':''}>${r}</option>`).join('')}
+        </select>
+        ${u.id !== user.id ? `<button class="btn btn-sm btn-danger btn-icon" onclick="deleteUser(${u.id})" title="Delete"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+
+async function changeRole(id, role) {
+  try { await apiFetch('/users/' + id + '/role', { method: 'PUT', body: JSON.stringify({ role }) }); showToast('Role updated'); load(); } catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteUser(id) {
+  if (!confirm('Delete this user?')) return;
+  try { await apiFetch('/users/' + id, { method: 'DELETE' }); showToast('User deleted'); load(); } catch(e) { showToast(e.message,'error'); }
+}
+
+async function createUser(e) {
+  e.preventDefault();
+  const body = { name: document.getElementById('u-name').value, email: document.getElementById('u-email').value, password: document.getElementById('u-password').value, role: document.getElementById('u-role').value, department: document.getElementById('u-dept').value };
+  try { await apiFetch('/users', { method: 'POST', body: JSON.stringify(body) }); showToast('User created'); closeModal('user-modal'); load(); } catch(e) { showToast(e.message,'error'); }
+}
+
+document.getElementById('page-content').innerHTML = `
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">System Users</span>
+      <button class="btn btn-primary" onclick="openModal('user-modal')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add User
+      </button>
+    </div>
+    <div class="table-wrapper">
+      <table><thead><tr><th>User</th><th>Department</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+      <tbody id="u-tbody"><tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="user-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Add User</span>
+        <button class="btn btn-sm btn-secondary btn-icon" onclick="closeModal('user-modal')"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <form onsubmit="createUser(event)">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Full Name *</label><input class="form-control" id="u-name" required /></div>
+            <div class="form-group"><label class="form-label">Role *</label>
+              <select class="form-control" id="u-role"><option>Faculty</option><option>HOD</option><option>Auditor</option><option>Admin</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Email *</label><input class="form-control" id="u-email" type="email" required /></div>
+          <div class="form-group"><label class="form-label">Department</label><input class="form-control" id="u-dept" /></div>
+          <div class="form-group"><label class="form-label">Password *</label><input class="form-control" id="u-password" type="password" required minlength="6" /></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('user-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+`;
+if (user.role === 'Admin') load();
+</script>
+</body>
+</html>
